@@ -1,30 +1,64 @@
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
-import React, { useState } from 'react'
+import { Button, Image, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import * as ImagePicker from 'expo-image-picker';
+import { handleUploadImage } from '../services/BucketService';
 
-const AddScreen = () => {
+const AddScreen = ({ navigation }) => {
 
     const [title, setTitle] = useState('')
 
+    // here you will add the permission stuff from the expo image picker 
 
-  return (
-   
-    <View style={styles.container}>
+    const [image, setImage] = useState(null);
 
-        <TextInput
-            style={styles.inputField}
-            placeholder="Memory Title"
-            onChangeText={newText => setTitle(newText)}
-            defaultValue={title}
-        />
+    const pickImage = async () => {
+        // No permissions request is necessary for launching the image library
+        let result = await ImagePicker.launchImageLibraryAsync({
+            mediaTypes: ImagePicker.MediaTypeOptions.All,
+            allowsEditing: true,
+            aspect: [4, 3],
+            quality: 1,
+        });
 
-        {/* TODO: Upload Image */}
+        console.log(result);
 
-        <TouchableOpacity style={styles.button} >
-            <Text style={styles.buttonText}>Add Memory</Text>
-        </TouchableOpacity>
-        
-    </View>
-  )
+        if (!result.canceled) {
+            setImage(result.assets[0].uri);
+        }
+    };
+
+    // this is calling out service 
+    const uploadImage = async () => {
+        await handleUploadImage(image, title) // choose the image and then write the title 
+        navigation.navigate("Home")
+    }
+
+    useEffect(() => {
+
+    }, [image])
+
+    return (
+
+        <View style={styles.container}>
+
+            <TextInput
+                style={styles.inputField}
+                placeholder="Memory Title"
+                onChangeText={newText => setTitle(newText)}
+                defaultValue={title}
+            />
+
+            {/* TODO: Upload Image */}
+
+            <TouchableOpacity style={styles.button} onPress={uploadImage}>
+                <Text style={styles.buttonText}>Add Memory</Text>
+            </TouchableOpacity>
+
+            <Button title="Pick an image from camera roll" onPress={pickImage} />
+            {image && <Image source={{ uri: image }} style={styles.image} />}
+
+        </View>
+    )
 }
 
 export default AddScreen
@@ -32,6 +66,10 @@ export default AddScreen
 const styles = StyleSheet.create({
     container: {
         padding: 20
+    },
+    image: {
+        width: 200,
+        height: 200,
     },
     inputField: {
         borderWidth: 2,

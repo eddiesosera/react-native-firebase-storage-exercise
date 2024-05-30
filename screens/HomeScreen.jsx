@@ -1,27 +1,52 @@
 import { Pressable, ScrollView, StyleSheet, Text, View, Image } from 'react-native'
-import React from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
+import { useFocusEffect } from '@react-navigation/native';
+import { getAllIMemories } from '../services/Database';
 
-const HomeScreen = ({navigation}) => {
-  return (
-    <ScrollView style={styles.container}>
-        <Pressable onPress={() => navigation.navigate("Add")}>
-            <Text>Add</Text>
-        </Pressable>
-        
-        {/* Card of your images that you need to loop through */}
-        <View style={styles.card}>
-            <Image
-                style={styles.img}
-                source={{
-                    uri: 'https://reactnative.dev/img/tiny_logo.png',
-                }} />
+const HomeScreen = ({ navigation }) => {
+    const [memories, setMemories] = useState([]);
 
-            <Text>Image Title</Text>
+    const handleGettingOfData = async () => {
+        var allData = await getAllIMemories("memories");
+        setMemories(allData);
+        console.log("All Memories: " + allData);
+    };
+
+    useFocusEffect(useCallback(() => {
+        handleGettingOfData()
+        return () => {
+
+        }
+    }, []))
+
+    return (
+        <View style={styles.container}>
+            <Pressable onPress={() => navigation.navigate("Add")} style={styles.button}>
+                <Text style={styles.buttonText}>Add Memory</Text>
+            </Pressable>
+
+            {/* Card of your images that you need to loop through */}
+            <ScrollView style={{ paddingBottom: 80, marginBottom: 40 }}>
+                {
+                    memories.map((memory, i) => {
+                        return (
+                            <View style={styles.card} key={i}>
+                                <Image
+                                    style={styles.img}
+                                    source={{
+                                        uri: memory.link,
+                                    }} />
+
+                                <Text style={styles.cardText}>{memory.name}</Text>
+                            </View>
+                        )
+                    })
+                }
+            </ScrollView>
+
         </View>
 
-    </ScrollView>
-
-  )
+    )
 }
 
 export default HomeScreen
@@ -41,7 +66,20 @@ const styles = StyleSheet.create({
     },
     img: {
         width: '100%',
-        height: 200,
+        height: 250,
         objectFit: 'cover'
+    },
+    cardText: {
+        marginTop: 10,
+    },
+    button: {
+        padding: 10,
+        backgroundColor: 'green',
+        marginBottom: 20,
+        alignItems: 'center',
+        justifyContent: 'center'
+    },
+    buttonText: {
+        color: 'white'
     }
 })
